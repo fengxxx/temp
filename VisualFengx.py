@@ -3,6 +3,20 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import math
 import  time
+
+
+
+angle=0.0
+x=0.0
+y=1.75
+z=5.0
+
+lx=0.0
+ly=0.0
+lz=-1.0
+
+
+
 lastx=0
 lasty=0
 def MouseMotion (x, y):
@@ -50,6 +64,45 @@ def key_pressed(*args):
 	# If escape is pressed, kill everything.
 	if args[0] == '\033':
 		sys.exit()
+
+def orientMe(ang):
+        global angle,x,y, z,lx, ly, lz
+        lx = math.sin(ang)
+        lz = -math.cos(ang)
+        glLoadIdentity()
+        gluLookAt(x, y, z, x + lx,y + ly,lz, 0.0,1.0,0.0)
+        #glutPostRedisplay ()
+def moveMeFlat( direction):
+        global angle,x,y, z,lx, ly, lz
+        x = x + direction*(lx)*0.1
+        z = z + direction*(lz)*0.1
+        glLoadIdentity()
+        #glPushMatrix ()
+        gluLookAt(x, y, z, x + lx,y + ly, lz, 0.0,1.0,0.0)
+        #glutPostRedisplay ()
+        #glPopMatrix ()
+def inputKey( key,  xx,  yy):
+        global angle,x,y, z,lx, ly, lz
+
+        while (key):
+                if key=="a":
+                        angle -= 0.001
+                        orientMe(angle)
+                        print str(angle)   
+                        break
+                if key=="d": 
+                        angle +=10
+                        orientMe(angle)
+                        print str(angle)
+                        break
+                if key=="w":
+                        
+                        moveMeFlat(10)
+                        break
+                if key=="s": 
+                        moveMeFlat(-0.1)
+                        break
+
 def Draw():
     
     PI=3.1415926
@@ -102,10 +155,12 @@ glMatrixMode(GL_PROJECTION)
 glLoadIdentity()
 gluPerspective(94.0,1.2,0.1,1200)
 gluLookAt(2,2,2,0,0,0,0,1,0)
+#gluLookAt(x, y, z, x + lx,y + ly, lz, 0.0,1.0,0.0)
 glutDisplayFunc(Draw)
 #glutIdleFunc(Update)
-glutKeyboardFunc(key_pressed)
-glutMotionFunc(MouseMotion)
-glutMouseFunc( click )
+#glutSpecialFunc(inputKey)
+glutKeyboardFunc(inputKey)#key_pressed)
+#glutMotionFunc(MouseMotion)
+#glutMouseFunc( click )
 glutMainLoop()
 
