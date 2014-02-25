@@ -1,14 +1,17 @@
 #!/usr/bin/env python
-# -*- coding: cp936 -*-
 import ImageGrab
 import Image
 import sys
 import win32api,win32gui,win32con ,win32ui ,os
 import wx
+import os
 
 
-savePath="fengx.png"
-grapPath="screen.png"
+# rootDir=os.getcwd()
+rootDir="K:\\temp\\screenGrap_Fengx\\"
+iconPath=rootDir+"\\app.ico"
+savePath=rootDir+"fengx.png"
+grapPath=rootDir+"screen.png"
 canGrap=True
 rect=[1,1,2,2]
 screenSize=(win32api.GetSystemMetrics(win32con.SM_CXSCREEN),win32api.GetSystemMetrics(win32con.SM_CYSCREEN))
@@ -18,36 +21,30 @@ h = MoniterDev[0][2][3]
 
 screenSize=(w,h)
 
-
 class TB_Icon(wx.TaskBarIcon):
     TBMENU_RESTORE = wx.NewId()
     TBMENU_CLOSE   = wx.NewId()
     TBMENU_CHANGE  = wx.NewId()
     TBMENU_REMOVE  = wx.NewId()
-
+    TBMENU_SHOW	=   wx.NewId()
     def __init__(self, frame):
         wx.TaskBarIcon.__init__(self)
         self.frame = frame
-        self.SetIcon( wx.Icon('App.ico', wx.BITMAP_TYPE_ICO), "wxPython Demo")
+        self.SetIcon( wx.Icon(iconPath, wx.BITMAP_TYPE_ICO), "screenGrap by fengx!")
         self.imgidx = 1
         self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnTaskBarActivate)
         self.Bind(wx.EVT_MENU, self.OnTaskBarActivate, id=self.TBMENU_RESTORE)
-        self.Bind(wx.EVT_MENU, self.OnTaskBarClose, id=self.TBMENU_CLOSE)
-        self.Bind(wx.EVT_MENU, self.OnTaskBarChange, id=self.TBMENU_CHANGE)
+        self.Bind(wx.EVT_MENU, self.OnTaskBarClose, id=self.TBMENU_CLOSE) 
+        self.Bind(wx.EVT_MENU, self.showWindow, id=self.TBMENU_SHOW)
         self.Bind(wx.EVT_MENU, self.OnTaskBarRemove, id=self.TBMENU_REMOVE)
+	
     def CreatePopupMenu(self):
-        """
-        This method is called by the base class when it needs to popup
-        the menu for the default EVT_RIGHT_DOWN event.  Just create
-        the menu how you want it and return it from this function,
-        the base class takes care of the rest.
-        """
         menu = wx.Menu()
         menu.Append(self.TBMENU_RESTORE, "Restore wxPython Demo")
         menu.Append(self.TBMENU_CLOSE,   "Close wxPython Demo")
         menu.AppendSeparator()
-        menu.Append(self.TBMENU_CHANGE, "Change the TB Icon")
-        menu.Append(self.TBMENU_REMOVE, "Remove the TB Icon")
+        menu.Append(self.TBMENU_SHOW, "关闭窗口")
+        menu.Append(self.TBMENU_REMOVE, "关闭")
         return menu
 
     def OnTaskBarActivate(self, evt):
@@ -65,11 +62,16 @@ class TB_Icon(wx.TaskBarIcon):
         #else:
             #self.frame.Show(False)
     def OnTaskBarChange(self, evt):
-        self.SetIcon(wx.Icon('arp.ico'), "This is a new icon: " + name)
+        self.SetIcon(wx.Icon(os.getcwd()+'\\arp.ico'), "This is a new icon: " + name)
         self.frame.Show(True)
     def OnTaskBarRemove(self, evt):
         self.RemoveIcon()
+        #self.frame.Close()
         sys.exit()
+		
+    def showWindow(self, evt):
+        self.frame.show()
+        #self.frame.show(False)
 class grapFrame(wx.Frame):
     def __init__(self, parent, id):
         wx.Frame.__init__(self, parent, id, 'null', 
@@ -83,7 +85,7 @@ class grapFrame(wx.Frame):
         self.button2 = wx.Button(self.panel, label="  Over", pos=(200, 15))
         self.button2.Bind(wx.EVT_RIGHT_UP, self.OnMouseUp)
 
-        self.icon = wx.Icon('App.ico', wx.BITMAP_TYPE_ICO)
+        self.icon = wx.Icon(iconPath, wx.BITMAP_TYPE_ICO)
         self.SetIcon(self.icon)  
 
 
@@ -100,7 +102,7 @@ class grapFrame(wx.Frame):
             self.tbicon = None
         self.button2.Bind(wx.EVT_LEFT_UP, self.OnMouseUp)
     def OnButtonClick(self, event):
-        self.panel.SetBackgroundColour('Green')
+        self.panel.SetBackgroundColour(os.getcwd()+'Green')
         self.panel.Refresh()
 
 
@@ -162,7 +164,7 @@ def createMap(mapPath):
             #self.bg.Bind(wx.EVT_MIDDLE_UP,  self.scaleB)
             
             #self.bg.Bind(wx.EVT_MIDDLE_DOWN,  self.OnMove)
-            self.icon = wx.Icon('max.ico', wx.BITMAP_TYPE_ICO)
+            self.icon = wx.Icon(rootDir+"\\max.ico", wx.BITMAP_TYPE_ICO)
             self.SetIcon(self.icon)
             self.Bind(wx.EVT_MOUSEWHEEL, self.scale)
         
@@ -277,3 +279,29 @@ if __name__ == '__main__':
     frame = grapFrame(parent=None, id=-1)
     frame.Show()
     app.MainLoop()
+
+	
+	
+'''cmd /k "echo $(CURRENT_DIRECTORY)" & PAUSE 
+cmd /k set b="\\" & set a=%CURRENT_DIRECTORY:~1,-1%%b:~1,-1% % echo %a%  & PAUSE 
+
+set c=%a:~1,-1%%b:~1,-1%
+
+cmd /k set a= %"$(CURRENT_DIRECTORY)":~1,-1%%"\\":~1,-1%  & PAUSE 
+
+
+cmd /k set a="$(CURRENT_DIRECTORY)" &  echo %a% & set b="//" &  echo %b%   &set c=%"$(CURRENT_DIRECTORY)":~1,-1%%b:~1,-1% & echo %c%  & echo "$(CURRENT_DIRECTORY)" &  PAUSE 
+
+
+cmd  cd "$(CURRENT_DIRECTORY)" & ECHO. & PAUSE 
+
+
+变量名称                含义                 例子
+FULL_CURRENT_PATH     文件路径名称        E:\java\HelloNpp.java
+CURRENT_DIRECTORY     文件目录            E:\java\
+FILE_NAME             文件全名称            HelloNpp.java
+NAME_PART             文件名称            HelloNpp
+EXT_PART              文件扩展名            java
+
+
+'''
