@@ -70,6 +70,15 @@ class TB_Icon(wx.TaskBarIcon):
         sys.exit()
 		
     def showWindow(self, evt):
+        bmp=wx.Image(grapPath,wx.BITMAP_TYPE_PNG)
+        mapSize=bmp.GetSize()
+
+
+        
+        app = wx.PySimpleApp()
+        frame = grapFrame(parent=None, id=-1)
+        frame.Show()
+        app.MainLoop()
         self.frame.show()
         #self.frame.show(False)
 class grapFrame(wx.Frame):
