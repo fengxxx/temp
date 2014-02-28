@@ -50,7 +50,7 @@ class TB_Icon(wx.TaskBarIcon):
         self.SetIcon( wx.Icon(ICON_PATH, wx.BITMAP_TYPE_ICO), "screenGrap by fengx!")
         self.imgidx = 1
 
-        #self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnTaskBarActivate )   
+        self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnTaskBarActivate )   
         self.Bind(wx.EVT_MENU, self.showALL_FRAME, id=self.m_show)
         self.Bind(wx.EVT_MENU, self.hideALL_FRAME, id=self.m_hide) 
         self.Bind(wx.EVT_MENU, self.grapScreen, id=self.m_screenGrap)
@@ -66,12 +66,14 @@ class TB_Icon(wx.TaskBarIcon):
         return menu
 
     def OnTaskBarActivate(self, evt):
+        grapStart(bmp)
+        '''
         if self.frame.IsIconized():
             self.frame.Iconize(False)
         if not self.frame.IsShown():
             self.frame.Show(True)
         self.frame.Raise()
-        
+        '''
     def OnTaskBarClose(self, evt):
         self.frame.Show(False)
 
@@ -229,6 +231,10 @@ class grapPartFrame(wx.Frame):
             GRAP_POS[str(self.ID)][0]=newPosX
             GRAP_POS[str(self.ID)][1]=newPosY
             #print self.ID
+
+
+
+
 #---<string> map path
 def createMap(mapPath):
     global GRAP_RECT
@@ -302,10 +308,7 @@ def start():
 
 
 
-global bmp
-global ALL_FRAME
-global mainApp
-global mainFrame
+
 
 ALL_FRAME=[]
 mainApp = wx.PySimpleApp()
