@@ -31,6 +31,7 @@ SCREEN_SIZE=(MoniterDev[0][2][2],MoniterDev[0][2][3])
 
 class TB_Icon(wx.TaskBarIcon):
     global ICON_PATH
+    global ALL_FRAME
     m_close=wx.NewId()
     m_seting=wx.NewId()
     m_hide=wx.NewId()
@@ -50,8 +51,8 @@ class TB_Icon(wx.TaskBarIcon):
         self.imgidx = 1
 
         #self.Bind(wx.EVT_TASKBAR_LEFT_DCLICK, self.OnTaskBarActivate )   
-        self.Bind(wx.EVT_MENU, self.showAllFrame, id=self.m_show)
-        self.Bind(wx.EVT_MENU, self.hideAllFrame, id=self.m_hide) 
+        self.Bind(wx.EVT_MENU, self.showALL_FRAME, id=self.m_show)
+        self.Bind(wx.EVT_MENU, self.hideALL_FRAME, id=self.m_hide) 
         self.Bind(wx.EVT_MENU, self.grapScreen, id=self.m_screenGrap)
         self.Bind(wx.EVT_MENU, self.closeApp, id=self.m_close)
 	
@@ -77,11 +78,11 @@ class TB_Icon(wx.TaskBarIcon):
     def OnTaskBarChange(self, evt):
         self.SetIcon(wx.Icon(os.getcwd()+'\\arp.ico'), "This is a new icon: " + name)
         #self.frame.Show(True)
-    def showAllFrame(self,evt):
-        for s in allFrame:
+    def showALL_FRAME(self,evt):
+        for s in ALL_FRAME:
             s.Show()
-    def hideAllFrame(self,evt):
-        for s in allFrame:
+    def hideALL_FRAME(self,evt):
+        for s in ALL_FRAME:
             s.Hide()
         
     def closeApp(self, evt):
@@ -206,7 +207,7 @@ class grapPartFrame(wx.Frame):
         GRAP_POS[str(self.ID)][3]=event.GetPosition()[1]
         GRAP_POS[str(self.ID)][4]=1
         #print "dian ji DOWN"
-        print self.ID
+        #print self.ID
 
     def OnMouseLeftUp(self, event):
         GRAP_POS[str(self.ID)][4]=0
@@ -227,7 +228,7 @@ class grapPartFrame(wx.Frame):
             self.SetPosition(newPos)
             GRAP_POS[str(self.ID)][0]=newPosX
             GRAP_POS[str(self.ID)][1]=newPosY
-            print self.ID
+            #print self.ID
 #---<string> map path
 def createMap(mapPath):
     global GRAP_RECT
@@ -242,7 +243,7 @@ def createMap(mapPath):
     newFrame.SetPosition(startPos)
     newFrame.bg.SetBitmap(wx.BitmapFromImage(tImage))
     newFrame.Show()
-    allFrame.append(newFrame)
+    ALL_FRAME.append(newFrame)
 
 
         
@@ -291,7 +292,8 @@ def start():
     global ROOT_DIR
     #files=os.walk(ROOT_DIR)
     files= os.listdir(ROOT_DIR)
-    print files
+    print type(files)
+    #files.sort() 
     for m in files:
         if os.path.splitext(m)[1]==".png":
             if os.path.basename(m)[0]=="g":
@@ -301,11 +303,11 @@ def start():
 
 
 global bmp
-global allFrame
+global ALL_FRAME
 global mainApp
 global mainFrame
 
-allFrame=[]
+ALL_FRAME=[]
 mainApp = wx.PySimpleApp()
 bmp=wx.EmptyBitmap(10,10, depth=-1)
 mainFrame=grapingScreenFrame(parent=None, id=-1)
