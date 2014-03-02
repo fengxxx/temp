@@ -6,7 +6,8 @@ import sys
 import win32api,win32gui,win32con ,win32ui 
 import wx
 import os
-
+import pythoncom
+import pyHook
 
 GRAP_NUM=0
 ROOT_DIR=os.getcwd()
@@ -20,7 +21,7 @@ GRAP_RECT=[1,1,2,2]
 GRAP_POS={}
 SCREEN_SIZE=(10,10)
 
-#³õÊ¼»¯
+#Â³ÃµÃŠÂ¼Â»Â¯
 #def __int__(self):
     #global SCREEN_SIZE
 SCREEN_SIZE=(win32api.GetSystemMetrics(win32con.SM_CXSCREEN),win32api.GetSystemMetrics(win32con.SM_CYSCREEN))
@@ -37,6 +38,7 @@ class TB_Icon(wx.TaskBarIcon):
     m_hide=wx.NewId()
     m_show=wx.NewId()
     m_screenGrap=wx.NewId()
+    m_DeleteAll=wx.NewId()
     '''
     TBMENU_RESTORE = wx.NewId()
     TBMENU_CLOSE   = wx.NewId()
@@ -55,13 +57,14 @@ class TB_Icon(wx.TaskBarIcon):
         self.Bind(wx.EVT_MENU, self.hideALL_FRAME, id=self.m_hide) 
         self.Bind(wx.EVT_MENU, self.grapScreen, id=self.m_screenGrap)
         self.Bind(wx.EVT_MENU, self.closeApp, id=self.m_close)
-	
+    	self.Bind(wx.EVT_MENU, self.onDeleteAll, id=self.m_DeleteAll)
     def CreatePopupMenu(self):
         menu= wx.Menu()
         menu.Append(self.m_show, "Show all window") 
         menu.Append(self.m_hide,  "Hide all window")
         menu.AppendSeparator()
         menu.Append(self.m_screenGrap, "Grap")
+        menu.Append(self.m_DeleteAll, "Delete All DATA")
         menu.Append(self.m_close, "Exit")
         return menu
 
@@ -82,10 +85,16 @@ class TB_Icon(wx.TaskBarIcon):
         #self.frame.Show(True)
     def showALL_FRAME(self,evt):
         for s in ALL_FRAME:
-            s.Show()
+            try:
+                s.Show()
+            except ImportError:
+                print ""
     def hideALL_FRAME(self,evt):
-        for s in ALL_FRAME:
-            s.Hide()
+        for s in ALL_FRAME:   
+            try:
+                s.Hide()
+            except ImportError:
+                print ""
         
     def closeApp(self, evt):
         self.RemoveIcon()
@@ -94,6 +103,19 @@ class TB_Icon(wx.TaskBarIcon):
 		
     def grapScreen(self, evt):
         grapStart(bmp)
+
+    def onDeleteAll(self, event):
+        global ROOT_DIR
+        files= os.listdir(ROOT_DIR)
+        for s in ALL_FRAME:
+            try:
+                s.Hide()
+                s.Close()
+            except ImportError:
+                print ""
+        for m in files:
+            if os.path.splitext(m)[1]==".png":
+                os.remove(m)
 
 class grapingScreenFrame(wx.Frame):
     global ICON_PATH
@@ -149,7 +171,7 @@ class grapPartFrame(wx.Frame):
     pos=[GRAP_RECT[0],GRAP_RECT[1]]
     bSize=SCREEN_SIZE
     sSize=(SCREEN_SIZE[0]*0.1,SCREEN_SIZE[1]*0.1)
-    
+    log="ss"
     ID=0
     
 
@@ -168,6 +190,7 @@ class grapPartFrame(wx.Frame):
         self.bg.Bind(wx.EVT_MOTION,  self.OnMove)
         self.bg.Bind(wx.EVT_MIDDLE_UP,  self.close)
         self.Bind(wx.EVT_MOUSEWHEEL, self.scale)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)
        
         #self.p=wx.Panel   
         #self.p.Bind(wx.EVT_CONTEXT_MENU, self.OnContextMenu)    
@@ -234,6 +257,120 @@ class grapPartFrame(wx.Frame):
 
 
 
+    def OnContextMenu(self, event):
+        #print ("OnContextMenu\n")
+
+        # only do this part the first time so the events are only bound once
+        #
+        # Yet another anternate way to do IDs. Some prefer them up top to
+        # avoid clutter, some prefer them close to the object of interest
+        # for clarity. 
+
+        if not hasattr(self, "pp_SAVE"):
+            self.pp_SAVE = wx.NewId()
+            self.pp_CLOSE = wx.NewId()
+            self.pp_HIDE = wx.NewId()
+            self.pp_DELETE = wx.NewId()
+            self.pp_TEST= wx.NewId()
+            self.pp_GRAP=wx.NewId()
+
+            self.Bind(wx.EVT_MENU, self.onSave, id=self.pp_SAVE)
+            self.Bind(wx.EVT_MENU, self.onClose, id=self.pp_CLOSE)
+            self.Bind(wx.EVT_MENU, self.onHide, id=self.pp_HIDE)
+            self.Bind(wx.EVT_MENU, self.onDelete, id=self.pp_DELETE)    
+            self.Bind(wx.EVT_MENU, self. grapScreen, id=self.pp_GRAP)
+
+        menu = wx.Menu()
+
+        menu.Append(self.pp_GRAP,"&Grap")
+        item = wx.MenuItem(menu, self.pp_SAVE,"&Save")
+        bmp=wx.BitmapFromIcon(wx.Icon(os.getcwd()+'\\App.ico'))
+        #item.SetBitmap(bmp)
+        menu.AppendItem(item)
+
+        menu.Append(self.pp_CLOSE, "&Close")
+        menu.Append(self.pp_HIDE, "&Hide")
+        menu.Append(self.pp_DELETE, "&Delete")
+        sm = wx.Menu()
+        sm.Append(self.pp_TEST, "ThreeKindom")
+        sm.Append(self.pp_TEST, "ZHOU")
+        menu.AppendMenu(self.pp_TEST, "RuangJi", sm)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def grapScreen(self, evt):
+        grapStart(bmp)
+    def onSavee(self, event):
+        
+        wildcard = "Python source (*.png)|*.png|"     \
+           "All files (*.*)|*.*"
+
+        dlg = wx.FileDialog(
+            self, message="Save file as ...", defaultDir=os.getcwd(), 
+            defaultFile="", wildcard=wildcard, style=wx.SAVE
+            )
+
+        print dlg.GetPath()
+        dlg.SetFilterIndex(2)
+        print "xxxxa"
+        print dlg.GetPath()
+        if dlg.ShowModal() == wx.ID_OK:
+            if os.path.isdir(dlg.GetPath()):
+                sPath=os.path.dirname(sPath)+"\\grapPart_"+str(self.ID+1)+".png" 
+                copyFiles(sPath, dlg.GetPath())
+        dlg.Destroy()
+
+    def onSave(self,event):
+        global SAVE_GRAP_MAP_PATH
+        wildcard = "Python source (*.png)|*.png|"     \
+        "All files (*.*)|*.*"
+        dialog=wx.FileDialog(self, message="Save file as ...", defaultDir=os.getcwd(), 
+        defaultFile="test.png", wildcard=wildcard,style=wx.SAVE)
+
+        tPath=os.path.dirname(SAVE_GRAP_MAP_PATH)+"\\grapPart_"+str(self.ID)+".png" 
+        if dialog.ShowModal()==wx.ID_OK:            
+            #print tPath
+            #print  dialog.GetPath()
+            #print os.path.isdir(self.beWindowsPath(tPath))
+            #if os.path.isdir(self.beWindowsPath(tPath)):
+            os.system ("copy %s %s" % (tPath, dialog.GetPath()))
+
+
+        #dialog.destory()
+    def onClose(self, event):
+        self.Close()
+
+    def onHide(self, event):
+        self.Hide()
+
+    def onDelete(self, event):
+        tPath=os.path.dirname(SAVE_GRAP_MAP_PATH)+"\\grapPart_"+str(self.ID)+".png"
+        os.remove(tPath)
+        self.Close()
+
+    def onDeleteAll(self, event):
+        global ROOT_DIR
+        files= os.listdir(ROOT_DIR)
+        for s in ALL_FRAME:
+            try:
+                s.Hide()
+                s.Close()
+            except ImportError:
+                print ""
+        for m in files:
+            if os.path.splitext(m)[1]==".png":
+                os.remove(m)
+
+    def beWindowsPath(self,cPath):
+        newPath=""
+        for s in cPath:
+            if s=="\\":
+                newPath+="/"
+            else:
+                newPath+=s
+
+        return newPath
 
 #---<string> map path
 def createMap(mapPath):
@@ -310,10 +447,62 @@ def start():
 
 
 
+def onMouseEvent(event):
+    '''
+
+    fobj.writelines('-' * 20 + 'MouseEvent Begin' + '-' * 20 + '\n')
+    fobj.writelines("Current Time:%s\n" % time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime()))
+    fobj.writelines("MessageName:%s\n" % str(event.MessageName))
+    fobj.writelines("Message:%d\n" % event.Message)
+    fobj.writelines("Time_sec:%d\n" % event.Time)
+    fobj.writelines("Window:%s\n" % str(event.Window))
+    fobj.writelines("WindowName:%s\n" % str(event.WindowName))
+    fobj.writelines("Position:%s\n" % str(event.Position))
+    fobj.writelines('-' * 20 + 'MouseEvent End' + '-' * 20 + '\n')
+    '''
+    return True
+
+
+def onKeyboardEvent(event):
+    '''
+
+    fobj.writelines('-' * 20 + 'Keyboard Begin' + '-' * 20 + '\n')
+    fobj.writelines("Current Time:%s\n" %  time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime()))
+    fobj.writelines("MessageName:%s\n" % str(event.MessageName))
+    fobj.writelines("Message:%d\n" % event.Message)
+    fobj.writelines("Time:%d\n" % event.Time)
+    fobj.writelines("Window:%s\n" % str(event.Window))
+    fobj.writelines("WindowName:%s\n" % str(event.WindowName))
+    fobj.writelines("Ascii_code: %d\n" % event.Ascii)
+    fobj.writelines("Ascii_char:%s\n" % chr(event.Ascii))
+    fobj.writelines("Key:%s\n" % str(event.Key))
+    fobj.writelines('-' * 20 + 'Keyboard End' + '-' * 20 + '\n')
+    print str(event.Key)
+    '''
+    #print str(event.Key)
+    return True
+
+
+
+
+
 ALL_FRAME=[]
 mainApp = wx.PySimpleApp()
 bmp=wx.EmptyBitmap(10,10, depth=-1)
 mainFrame=grapingScreenFrame(parent=None, id=-1)
 mainFrame.bg.SetBitmap(bmp)
 start()
+'''
+hm = pyHook.HookManager()
+
+hm.KeyDown = onKeyboardEvent
+hm.HookKeyboard()
+
+hm.MouseAll = onMouseEvent
+hm.HookMouse()
+
+pythoncom.PumpMessages()
+'''
 mainApp.MainLoop()
+#---------global key
+
