@@ -6,8 +6,7 @@ import sys
 import win32api,win32gui,win32con ,win32ui 
 import wx
 import os
-import pythoncom
-import pyHook
+import time 
 
 GRAP_NUM=0
 ROOT_DIR=os.getcwd()
@@ -15,15 +14,17 @@ ROOT_DIR=os.getcwd()
 ICON_PATH=ROOT_DIR+"\\app.ico"
 SAVE_GRAP_MAP_PATH=ROOT_DIR+"\\fengx.png"
 SAVE_SCREEN_MAP_PATH=ROOT_DIR+"\\screen.png"
+GRAP_PF_NAME="ThreeKindom"
 CAN_GRAP=True
 CAN_MOVE=False
 GRAP_RECT=[1,1,2,2]
-GRAP_POS={}
-SCREEN_SIZE=(10,10)
 
-#³õÊ¼»¯
-#def __int__(self):
-    #global SCREEN_SIZE
+GRAP_MAP_DATA={}
+
+GRAP_MAP_RECT={}
+
+
+SCREEN_SIZE=(10,10)
 SCREEN_SIZE=(win32api.GetSystemMetrics(win32con.SM_CXSCREEN),win32api.GetSystemMetrics(win32con.SM_CYSCREEN))
 MoniterDev=win32api.EnumDisplayMonitors(None,None)  
 SCREEN_SIZE=(MoniterDev[0][2][2],MoniterDev[0][2][3])
@@ -39,13 +40,7 @@ class TB_Icon(wx.TaskBarIcon):
     m_show=wx.NewId()
     m_screenGrap=wx.NewId()
     m_DeleteAll=wx.NewId()
-    '''
-    TBMENU_RESTORE = wx.NewId()
-    TBMENU_CLOSE   = wx.NewId()
-    TBMENU_CHANGE  = wx.NewId()
-    TBMENU_REMOVE  = wx.NewId()
-    TBMENU_SHOW	=   wx.NewId()
-    ''' 
+
     def __init__(self, frame):
         wx.TaskBarIcon.__init__(self)
         self.frame = frame
@@ -161,7 +156,7 @@ class grapPartFrame(wx.Frame):
     global GRAP_RECT
     global CAN_MOVE
     global GRAP_NUM
-    global GRAP_POS
+    global GRAP_MAP_RECT
 
     cRect=(10,10,10,10)
     pos=(20,20)
@@ -176,7 +171,7 @@ class grapPartFrame(wx.Frame):
     
 
     def __init__(self, parent, id):
-        GRAP_POS[str(GRAP_NUM)]=[GRAP_RECT[0],GRAP_RECT[1],10,10,0,1,1]
+        GRAP_MAP_RECT[str(GRAP_NUM)]=[GRAP_RECT[0],GRAP_RECT[1],10,10,0,1,1]
         self.ID=GRAP_NUM
         wx.Frame.__init__(self, parent, id, 'fengx', size=SCREEN_SIZE,style=wx.SIMPLE_BORDER|wx.STAY_ON_TOP)
         #self.bg=wx.StaticBitmap(self,-1,  wx.EmptyBitmap(10,10, depth=-1), (0,0))
@@ -217,25 +212,25 @@ class grapPartFrame(wx.Frame):
             tim=im.Rescale(im.Width,im.Height)
             self.bg.SetBitmap(wx.BitmapFromImage(tim))  
             self.SetSize((im.Width,im.Height))
-            self.SetPosition(((GRAP_POS[str(self.ID)][0]-GRAP_POS[str(self.ID)][5]),(GRAP_POS[str(self.ID)][1]-GRAP_POS[str(self.ID)][6])))
+            self.SetPosition(((GRAP_MAP_RECT[str(self.ID)][0]-GRAP_MAP_RECT[str(self.ID)][5]),(GRAP_MAP_RECT[str(self.ID)][1]-GRAP_MAP_RECT[str(self.ID)][6])))
 
         else:
             tim=im.Rescale(im.Width*0.2,im.Height*0.2)
             self.bg.SetBitmap(wx.BitmapFromImage(tim))  
             self.SetSize((im.Width*0.2,im.Height*0.2))
-            GRAP_POS[str(self.ID)][5]=event.GetPosition()[0]
-            GRAP_POS[str(self.ID)][6]=event.GetPosition()[1]
-            self.SetPosition(((GRAP_POS[str(self.ID)][1]+GRAP_POS[str(self.ID)][5]),(GRAP_POS[str(self.ID)][6]+GRAP_POS[str(self.ID)][6])))
+            GRAP_MAP_RECT[str(self.ID)][5]=event.GetPosition()[0]
+            GRAP_MAP_RECT[str(self.ID)][6]=event.GetPosition()[1]
+            self.SetPosition(((GRAP_MAP_RECT[str(self.ID)][1]+GRAP_MAP_RECT[str(self.ID)][5]),(GRAP_MAP_RECT[str(self.ID)][6]+GRAP_MAP_RECT[str(self.ID)][6])))
     def OnMouseLeftDown(self, event):
 
-        GRAP_POS[str(self.ID)][2]=event.GetPosition()[0]
-        GRAP_POS[str(self.ID)][3]=event.GetPosition()[1]
-        GRAP_POS[str(self.ID)][4]=1
+        GRAP_MAP_RECT[str(self.ID)][2]=event.GetPosition()[0]
+        GRAP_MAP_RECT[str(self.ID)][3]=event.GetPosition()[1]
+        GRAP_MAP_RECT[str(self.ID)][4]=1
         #print "dian ji DOWN"
         #print self.ID
 
     def OnMouseLeftUp(self, event):
-        GRAP_POS[str(self.ID)][4]=0
+        GRAP_MAP_RECT[str(self.ID)][4]=0
         #print "dian ji up"
 
     def close(self,event):
@@ -246,13 +241,13 @@ class grapPartFrame(wx.Frame):
         #self.Close()
 
     def OnMove(self, event):
-        newPosX=event.GetPosition()[0]-GRAP_POS.get(str(self.ID))[2]+GRAP_POS.get(str(self.ID))[0]
-        newPosY=event.GetPosition()[1]-GRAP_POS.get(str(self.ID))[3]+GRAP_POS.get(str(self.ID))[1]
+        newPosX=event.GetPosition()[0]-GRAP_MAP_RECT.get(str(self.ID))[2]+GRAP_MAP_RECT.get(str(self.ID))[0]
+        newPosY=event.GetPosition()[1]-GRAP_MAP_RECT.get(str(self.ID))[3]+GRAP_MAP_RECT.get(str(self.ID))[1]
         newPos=wx.Point=(newPosX,newPosY)
-        if GRAP_POS[str(self.ID)][4]==1:
+        if GRAP_MAP_RECT[str(self.ID)][4]==1:
             self.SetPosition(newPos)
-            GRAP_POS[str(self.ID)][0]=newPosX
-            GRAP_POS[str(self.ID)][1]=newPosY
+            GRAP_MAP_RECT[str(self.ID)][0]=newPosX
+            GRAP_MAP_RECT[str(self.ID)][1]=newPosY
             #print self.ID
 
 
@@ -393,7 +388,12 @@ def createMap(mapPath):
 def grap(box,sPath):
     global GRAP_NUM
     global SAVE_SCREEN_MAP_PATH
-    sPath=os.path.dirname(sPath)+"\\grapPart_"+str(GRAP_NUM+1)+".png" 
+    global GRAP_PF_NAME
+    global GRAP_RECT
+
+    gTime=str(int(time.time()))
+    sPath=os.path.dirname(sPath)+"\\"+GRAP_PF_NAME+gTime+".png"
+    
     im = Image.open(SAVE_SCREEN_MAP_PATH)
     imSize=()
     cim=Image.new('RGB',(abs(box[2]-box[0]),abs(box[3]-box[1])))
@@ -443,66 +443,14 @@ def start():
                 createMap(ROOT_DIR+"\\"+ m)
                 #GRAP_NUM[0]+=1
 
-
-
-
-
-def onMouseEvent(event):
-    '''
-
-    fobj.writelines('-' * 20 + 'MouseEvent Begin' + '-' * 20 + '\n')
-    fobj.writelines("Current Time:%s\n" % time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime()))
-    fobj.writelines("MessageName:%s\n" % str(event.MessageName))
-    fobj.writelines("Message:%d\n" % event.Message)
-    fobj.writelines("Time_sec:%d\n" % event.Time)
-    fobj.writelines("Window:%s\n" % str(event.Window))
-    fobj.writelines("WindowName:%s\n" % str(event.WindowName))
-    fobj.writelines("Position:%s\n" % str(event.Position))
-    fobj.writelines('-' * 20 + 'MouseEvent End' + '-' * 20 + '\n')
-    '''
-    return True
-
-
-def onKeyboardEvent(event):
-    '''
-
-    fobj.writelines('-' * 20 + 'Keyboard Begin' + '-' * 20 + '\n')
-    fobj.writelines("Current Time:%s\n" %  time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime()))
-    fobj.writelines("MessageName:%s\n" % str(event.MessageName))
-    fobj.writelines("Message:%d\n" % event.Message)
-    fobj.writelines("Time:%d\n" % event.Time)
-    fobj.writelines("Window:%s\n" % str(event.Window))
-    fobj.writelines("WindowName:%s\n" % str(event.WindowName))
-    fobj.writelines("Ascii_code: %d\n" % event.Ascii)
-    fobj.writelines("Ascii_char:%s\n" % chr(event.Ascii))
-    fobj.writelines("Key:%s\n" % str(event.Key))
-    fobj.writelines('-' * 20 + 'Keyboard End' + '-' * 20 + '\n')
-    print str(event.Key)
-    '''
-    #print str(event.Key)
-    return True
-
-
-
-
-
+    print GRAP_MAP_RECT
 ALL_FRAME=[]
 mainApp = wx.PySimpleApp()
 bmp=wx.EmptyBitmap(10,10, depth=-1)
 mainFrame=grapingScreenFrame(parent=None, id=-1)
 mainFrame.bg.SetBitmap(bmp)
 start()
-'''
-hm = pyHook.HookManager()
 
-hm.KeyDown = onKeyboardEvent
-hm.HookKeyboard()
-
-hm.MouseAll = onMouseEvent
-hm.HookMouse()
-
-pythoncom.PumpMessages()
-'''
 mainApp.MainLoop()
 #---------global key
 
