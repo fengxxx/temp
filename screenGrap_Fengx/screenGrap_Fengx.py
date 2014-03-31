@@ -7,7 +7,7 @@ import win32api,win32gui,win32con ,win32ui
 import wx
 import os
 import time 
-
+import string
 GRAP_NUM=0
 ROOT_DIR=os.getcwd()
 #ROOT_DIR="K:\\temp\\screenGrap_Fengx\\"
@@ -431,19 +431,31 @@ def grapStart(bmp):
 
         
 def start():
-    #global GRAP_NUM
     global ROOT_DIR
-    #files=os.walk(ROOT_DIR)
+    
     files= os.listdir(ROOT_DIR)
-    print type(files)
-    #files.sort() 
+    i=1
     for m in files:
-        if os.path.splitext(m)[1]==".png":
-            if os.path.basename(m)[0]=="g":
+        nameParts=string.split(os.path.basename(m),"_")
+        if nameParts[0]==GRAP_PF_NAME:
+            if os.path.splitext(m)[1]==".png":
+                GRAP_MAP_PATH[str(i)]=[0,0,0,0,0,0,0]
                 createMap(ROOT_DIR+"\\"+ m)
                 #GRAP_NUM[0]+=1
 
     print GRAP_MAP_RECT
+
+
+def beStringFromRect(rect):
+    s=""
+
+
+
+def beRectFromString(s):
+    rect=[0,0,0,0,0,0,0]
+
+
+
 ALL_FRAME=[]
 mainApp = wx.PySimpleApp()
 bmp=wx.EmptyBitmap(10,10, depth=-1)
